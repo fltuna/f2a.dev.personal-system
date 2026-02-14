@@ -41,13 +41,20 @@ DB_PASSWORD=your_secure_database_password
 JWT_SECRET=your-random-string-at-least-32-characters-long
 ```
 
-### 2. 起動
+### 2. データディレクトリを作成
+
+```bash
+mkdir -p data/{postgres,files,system}
+sudo chown -R 1654:1654 data/files data/system
+```
+
+### 3. 起動
 
 ```bash
 docker compose up -d
 ```
 
-### 3. 初期セットアップ
+### 4. 初期セットアップ
 
 ```bash
 # データベースマイグレーション
@@ -60,7 +67,7 @@ docker compose exec api f2a-cli db seed-permissions
 docker compose exec api f2a-cli user add your@email.com --password YourSecurePassword123! --group SuperUser
 ```
 
-### 4. リバースプロキシ設定
+### 5. リバースプロキシ設定
 
 Frontend (port 3000) と API (port 5000) をリバースプロキシで公開してください。
 
