@@ -86,7 +86,7 @@ server {
     listen 443 ssl;
     server_name api.example.com;
 
-    client_max_body_size 500m;
+    client_max_body_size 0;  # アプリ側で制限を管理
 
     location / {
         proxy_pass http://localhost:5000;
