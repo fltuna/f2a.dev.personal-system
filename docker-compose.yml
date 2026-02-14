@@ -1,0 +1,54 @@
+services:
+  frontend:
+    image: ghcr.io/fltuna/f2a.dev.personal-system.frontend:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - API_INTERNAL_URL=http://api:8080
+      - PUBLIC_API_BASE_URL=${PUBLIC_API_BASE_URL}
+    mem_limit: 512m
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  api:
+    image: ghcr.io/fltuna/f2a.dev.personal-system.backend:latest
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=f2a;Username=f2a;Password=${DB_PASSWORD}
+      - Jwt__Secret=${JWT_SECRET}
+      - Jwt__Issuer=F2A.Api
+      - Jwt__Audience=F2A.Client
+      - Google__ClientId=${GOOGLE_CLIENT_ID:-}
+      - Google__ClientSecret=${GOOGLE_CLIENT_SECRET:-}
+      - Storage__Path=/app/storage/files
+      - Storage__SystemPath=/app/storage/system
+      - Cors__AllowedOrigins__0=${SITE_URL}
+      - DOTNET_GCConserveMemory=9
+    mem_limit: 256m
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./data/files:/app/storage/files
+      - ./data/system:/app/storage/system
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=f2a
+      - POSTGRES_USER=f2a
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    mem_limit: 256m
+    shm_size: 64m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U f2a -d f2a"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
